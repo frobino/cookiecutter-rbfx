@@ -1,0 +1,16 @@
+{
+    "LaunchManager": {
+        "Configurations": [
+            {
+                "MainPlugin": "SampleProject",
+                "Name": "Play From Here"
+            }
+        ]
+    },
+    "PluginManager": {
+        "LoadedPlugins": [
+            "Plugin.Core.SamplePlugin",
+            "App.Main"
+        ]
+    }
+}

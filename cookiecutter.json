@@ -1,0 +1,7 @@
+{
+    "project_name": "Sample Project",
+    "project_slug": "sample-project",
+    "include_rbfx_submodule": "yes",
+    "min_cmake_version": "3.14",
+    "license": "MIT"
+}
