@@ -1,17 +1,15 @@
-# This hook runs after cookiecutter generation.
-import os
 import subprocess
-from pathlib import Path
+import os
 
-project_dir = Path(os.getcwd())
+SUBMODULE_REPO = "https://github.com/rbfx/Core.SamplePlugin.git"
+SUBMODULE_PATH = "Plugins/Core.SamplePlugin"
 
 def run(cmd):
-    try:
-        subprocess.check_call(cmd, shell=True, cwd=project_dir)
-    except subprocess.CalledProcessError:
-        print("Command failed:", cmd)
+    subprocess.check_call(cmd, shell=True)
 
-# If template asked to include rbfx submodule, initialize submodules.
-if "{{ cookiecutter.include_rbfx_submodule }}" == "yes":
-    print("Initializing git submodules (rbfx, Plugins)...")
+run("git init")
+if os.path.isdir(".git"):
+    run(f"git submodule add {SUBMODULE_REPO} {SUBMODULE_PATH}")
     run("git submodule update --init --recursive")
+else:
+    print("Warning: Project is not a Git repository. Skipping submodule setup.")
