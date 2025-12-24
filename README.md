@@ -9,5 +9,4 @@ This template includes main CMake scaffolding and a few example source files. Ad
 
 ## Next
 
-- add ResourceRoot.ini (modularize)
-- check if Launcher is needed, and if so, add to template
+- test
