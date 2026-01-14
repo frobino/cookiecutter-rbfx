@@ -6,32 +6,7 @@ set (SOURCE_FILES Launcher.cpp)
 if (WIN32)
     if (UWP)
         add_definitions (-DUWP=1)
-
-        # Configure custom manifest
-        set(APP_MANIFEST_NAME package.appxManifest)
-        configure_file(
-            ${CMAKE_SOURCE_DIR}/StoreArt/UWP/${APP_MANIFEST_NAME}.in
-            ${CMAKE_CURRENT_BINARY_DIR}/${APP_MANIFEST_NAME}
-            @ONLY)
-
-        set(CONTENT_FILES "${CMAKE_CURRENT_BINARY_DIR}/${APP_MANIFEST_NAME}")
-
-        file(GLOB_RECURSE ASSET_FILES "${CMAKE_SOURCE_DIR}/StoreArt/UWP/*.png")
-
-        # Configure custom icons
-        set_property(SOURCE ${ASSET_FILES} PROPERTY VS_DEPLOYMENT_CONTENT 1)
-        set_property(SOURCE ${ASSET_FILES} PROPERTY VS_DEPLOYMENT_LOCATION "Assets")
-        source_group("Resource Files" FILES ${ASSET_FILES})
-
-        set_property(SOURCE ${CONTENT_FILES} PROPERTY VS_DEPLOYMENT_CONTENT 1)
-
-        set(RESOURCE_FILES
-          ${CONTENT_FILES} ${ASSET_FILES})
-
-    else()
-        set(RESOURCE_FILES "${CMAKE_SOURCE_DIR}/StoreArt/Windows/appicon.rc")
     endif ()
-
 endif()
 
 # Add launcher target.
