@@ -22,6 +22,7 @@ set(URHO3D_SAMPLES OFF)
 #   - Configure with `-DCMAKE_PREFIX_PATH=/path/to/rbfx/CMake`
 find_package(Urho3D REQUIRED)
 
+{% if cookiecutter.sample_plugin == 'y' -%}
 # Check if Core.SamplePlugin exists
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Core.SamplePlugin/CMakeLists.txt")
     message(FATAL_ERROR
@@ -35,10 +36,15 @@ endif()
 # Add plugins (optional).
 include_directories (${CMAKE_SOURCE_DIR}/Plugins)
 add_subdirectory (${CMAKE_SOURCE_DIR}/Plugins/Core.SamplePlugin)
+{% endif %}
 
 # List all plugins used by the application.
 set (APP_PLUGIN_NAME "App.Main")
+{% if cookiecutter.sample_plugin == 'y' -%}
 set (APP_PLUGIN_LIST "Plugin.Core.SamplePlugin;${APP_PLUGIN_NAME}")
+{% else -%}
+set (APP_PLUGIN_LIST "${APP_PLUGIN_NAME}")
+{% endif %}
 
 # Add main application library with all user code.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Application)
