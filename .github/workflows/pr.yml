@@ -41,4 +41,5 @@ jobs:
       - name: Configure project
         run: |
           cmake -S pr_test -B pr_test/build \
+            -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_PREFIX_PATH="$PWD/rbfx-sdk/rebelfork-sdk-linux-gcc-x64-dll-latest"
