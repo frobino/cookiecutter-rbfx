@@ -1,0 +1,43 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full cmake ninja-build
+          pip install cookiecutter
+
+      - name: Download and unpack RBFX SDK
+        run: |
+          mkdir rbfx-sdk
+          curl -L -o rbfx-sdk/sdk.7z \
+            https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z
+          7z x rbfx-sdk/sdk.7z -orbfx-sdk
+
+      - name: Generate project
+        run: |
+          cookiecutter . --no-input \
+            project_name="Nightly Test" \
+            project_slug="nightly_test"
+
+      - name: Configure and build
+        run: |
+          cmake -S nightly_test -B nightly_test/build \
+            -G Ninja \
+            -DCMAKE_PREFIX_PATH="$PWD/rbfx-sdk/rebelfork-sdk-linux-gcc-x64-dll-latest"
+          cmake --build nightly_test/build

@@ -1,0 +1,44 @@
+name: PR Validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - "cookiecutter.json"
+      - "{{cookiecutter.project_slug}}/**"
+  workflow_dispatch:
+
+jobs:
+  validate-template:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full cmake
+          pip install cookiecutter
+
+      - name: Download and unpack RBFX SDK
+        run: |
+          mkdir rbfx-sdk
+          curl -L -o rbfx-sdk/sdk.7z \
+            https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z
+          7z x rbfx-sdk/sdk.7z -orbfx-sdk
+
+      - name: Generate project
+        run: |
+          cookiecutter . --no-input \
+            project_name="PR Test" \
+            project_slug="pr_test"
+
+      - name: Configure project
+        run: |
+          cmake -S pr_test -B pr_test/build \
+            -DCMAKE_PREFIX_PATH="$PWD/rbfx-sdk/rebelfork-sdk-linux-gcc-x64-dll-latest"
