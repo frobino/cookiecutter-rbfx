@@ -49,9 +49,11 @@ set (APP_PLUGIN_LIST "${APP_PLUGIN_NAME}")
 # Add main application library with all user code.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Application)
 
+{% if cookiecutter.editor == 'y' -%}
 # Add custom editor linked with user code.
 # With dynamic linking, pre-built editor can be used.
-# add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
+add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
+{% endif %}
 
 # Add custom player.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Launcher)

@@ -63,8 +63,9 @@ You will be prompted for a few values:
   [2/6] project_slug (sample-project): sample-project-2 # used for folders and targets
   [3/6] rbfx_sdk (../rbfx): ../rebelfork-sdk-linux-gcc-x64-dll-latest # relative path to the rbfx engine
   [4/6] sample_plugin (y): n # If you want to include and build an example of a plugin
-  [5/6] min_cmake_version (3.14): 
-  [6/6] license (MIT): 
+  [5/7] editor (y): n # If you want to include and build an Editor with your game and plugins
+  [6/7] min_cmake_version (3.14): 
+  [7/7] license (MIT): 
 ```
 
 After answering the prompts, a new directory containing your project will be created.
@@ -75,13 +76,27 @@ A typical generated project looks like this:
 
 ```
 your_project/
+├── android
 ├── CMakeLists.txt
-├── src/
-│   └── main.cpp
-├── include/
-│   └── your_project/
-├── assets/
-└── README.md
+├── Plugins
+│   └── Core.SamplePlugin
+│       ├── ...
+├── Project
+│   ├── Data
+│   │   ├── ...
+│   └── Project.json
+├── ResourceRoot.ini
+└── Source
+    ├── Application
+    │   ├── CMakeLists.txt
+    │   ├── SampleProject.cpp
+    │   └── SampleProject.h
+    ├── Editor
+    │   ├── CMakeLists.txt
+    │   └── Editor.cpp
+    └── Launcher
+        ├── CMakeLists.txt
+        └── Launcher.cpp
 ```
 
 This layout follows common RBFX and CMake conventions and is ready to build.

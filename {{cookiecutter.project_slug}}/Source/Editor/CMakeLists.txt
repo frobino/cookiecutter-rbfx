@@ -1,0 +1,11 @@
+if (NOT TARGET EditorLibrary)
+    return ()
+endif ()
+
+if (NOT URHO3D_WIN32_CONSOLE)
+    set (TARGET_TYPE WIN32)
+endif ()
+set (TARGET_NAME "${CMAKE_PROJECT_NAME}Editor")
+add_executable (${TARGET_NAME} ${TARGET_TYPE} Editor.cpp)
+target_link_libraries (${TARGET_NAME} PUBLIC EditorLibrary)
+target_link_plugins (${TARGET_NAME} "${APP_PLUGIN_LIST}")
