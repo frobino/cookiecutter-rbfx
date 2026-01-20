@@ -1,8 +1,8 @@
-name: Nightly Build
+name: Weekly Build
 
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * 1"   # Monday
   workflow_dispatch:
 
 jobs:
@@ -32,12 +32,12 @@ jobs:
       - name: Generate project
         run: |
           cookiecutter . --no-input \
-            project_name="Nightly Test" \
-            project_slug="nightly_test"
+            project_name="Weekly Test" \
+            project_slug="weekly_test"
 
       - name: Configure and build
         run: |
-          cmake -S nightly_test -B nightly_test/build \
+          cmake -S weekly_test -B weekly_test/build \
             -G Ninja \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_PREFIX_PATH="$PWD/rbfx-sdk/rebelfork-sdk-linux-gcc-x64-dll-latest"

@@ -6,10 +6,11 @@ on:
       - ".github/workflows/**"
       - "cookiecutter.json"
       - "{{cookiecutter.project_slug}}/**"
+      - "hooks/**"
   workflow_dispatch:
 
 jobs:
-  validate-template:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y p7zip-full cmake libx11-dev
+          sudo apt-get install -y p7zip-full cmake ninja-build libx11-dev
           pip install cookiecutter
 
       - name: Download and unpack RBFX SDK
@@ -38,8 +39,10 @@ jobs:
             project_name="PR Test" \
             project_slug="pr_test"
 
-      - name: Configure project
+      - name: Configure and build
         run: |
           cmake -S pr_test -B pr_test/build \
+            -G Ninja \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_PREFIX_PATH="$PWD/rbfx-sdk/rebelfork-sdk-linux-gcc-x64-dll-latest"
+          cmake --build pr_test/build
