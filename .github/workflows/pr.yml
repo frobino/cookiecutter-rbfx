@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y p7zip-full cmake ninja-build libx11-dev
+          sudo apt-get install -y p7zip-full cmake ninja-build libx11-dev libdbus-1-dev uuid-dev libgl1-mesa-dev
           pip install cookiecutter
 
       - name: Download and unpack RBFX SDK

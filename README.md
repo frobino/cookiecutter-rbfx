@@ -1,5 +1,9 @@
 # cookiecutter-rbfx
 
+[![Weekly Build](https://github.com/frobino/cookiecutter-rbfx/actions/workflows/weekly.yml/badge.svg)](
+https://github.com/frobino/cookiecutter-rbfx/actions/workflows/weekly.yml
+)
+
 Quickly scaffold a new RBFX game project using Cookiecutter.
 
 This repository provides a Cookiecutter template that generates a ready-to-build **RBFX (C++) game project** with a clean structure and sensible defaults. It is intended for developers who want to start coding immediately without spending time on initial project setup.
