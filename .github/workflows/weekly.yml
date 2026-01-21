@@ -1,0 +1,44 @@
+name: Weekly Build
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"   # Monday
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full cmake ninja-build libx11-dev libdbus-1-dev uuid-dev libgl1-mesa-dev
+          pip install cookiecutter
+
+      - name: Download and unpack RBFX SDK
+        run: |
+          mkdir rbfx-sdk
+          curl -L -o rbfx-sdk/sdk.7z \
+            https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z
+          7z x rbfx-sdk/sdk.7z -orbfx-sdk
+
+      - name: Generate project
+        run: |
+          cookiecutter . --no-input \
+            project_name="Weekly Test" \
+            project_slug="weekly_test"
+
+      - name: Configure and build
+        run: |
+          cmake -S weekly_test -B weekly_test/build \
+            -G Ninja \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_PREFIX_PATH="$PWD/rbfx-sdk/rebelfork-sdk-linux-gcc-x64-dll-latest"
+          cmake --build nightly_test/build
