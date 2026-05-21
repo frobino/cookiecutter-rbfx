@@ -69,12 +69,12 @@ When you run the template, you will first choose how to obtain the RBFX engine S
 - The template downloads the matching prebuilt SDK for your platform.
 - After answering the SDK install prompt, you will be asked to confirm the SDK save location (default: `../rbfx` sibling to your project).
 - Then you can choose to download from GitHub releases (default, auto-detected for Linux/Windows/macOS) or provide a custom URL.
-- The downloaded SDK is extracted and placed in the chosen location. A `SDK_INFO.txt` is written into the generated project with the SDK path and suggested `CMAKE_PREFIX_PATH` value.
+- The downloaded SDK is extracted and placed in the chosen location.
 
 **[2] Existing SDK** (advanced)
 - Use this if you have already built or downloaded an SDK.
 - You will be asked for the absolute or relative path to the SDK directory.
-- The hook verifies the SDK exists and contains `bin/CoreData`. A `SDK_INFO.txt` is written into the generated project with the SDK path and suggested `CMAKE_PREFIX_PATH` value.
+- The hook verifies the SDK exists and contains `bin/CoreData`.
 
 ### CLI Usage (non-interactive)
 
@@ -140,7 +140,7 @@ cmake .. -DCMAKE_PREFIX_PATH=/path/to/rbfx
 cmake --build .
 ```
 
-Replace `/path/to/rbfx` with the location of your RBFX SDK. You can find the correct path in the `SDK_INFO.txt` file generated in your project root.
+Replace `/path/to/rbfx` with the location of your RBFX SDK (the same path you specified when generating the project).
 
 ## Running the Application
 

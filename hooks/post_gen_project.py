@@ -4,40 +4,39 @@
 Post-generation hook for cookiecutter-rbfx.
 
 Cookiecutter processes Jinja2 expressions in this file before running it,
-so the variable values below are rendered at generation time.
+so the variable values below are rendered into literal strings.
 """
 
-import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# These variables are populated by Jinja2 during cookiecutter template
-# rendering.  They are literal strings after Jinja2 has substituted values.
+# Variables populated by Jinja2 during cookiecutter template rendering
 # ---------------------------------------------------------------------------
-_sample_plugin = "{{ cookiecutter.sample_plugin }}"
-_rbfx_sdk_install = "{{ cookiecutter.rbfx_sdk_install }}"
-_rbfx_sdk_path = "{{ cookiecutter.rbfx_sdk_path }}"
-_rbfx_sdk_download_url = "{{ cookiecutter.rbfx_sdk_download_url }}"
+sample_plugin = "{{ cookiecutter.sample_plugin }}"
+rbfx_sdk_install = "{{ cookiecutter.rbfx_sdk_install }}"
+rbfx_sdk_path = "{{ cookiecutter.rbfx_sdk_path }}"
+rbfx_sdk_download_url = "{{ cookiecutter.rbfx_sdk_download_url }}"
 
 
 _SUBMODULE_REPO = "https://github.com/rbfx/Core.SamplePlugin.git"
 _SUBMODULE_PATH = "Plugins/Core.SamplePlugin"
 
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def run(cmd: str, **kwargs) -> subprocess.CompletedProcess:
+def run(cmd: str, **kwargs):
     return subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True, **kwargs)
 
 
 def extract_archive(archive_path: Path, dest: Path):
-    """Extract .7z archive to dest."""
     exe = shutil.which("7z") or shutil.which("7za")
     if exe:
         run(f'"{exe}" x "{archive_path}" -o"{dest}" -y')
@@ -48,51 +47,14 @@ def extract_archive(archive_path: Path, dest: Path):
 
 
 def find_sdk_directory(sdk_parent: Path) -> Path:
-    """Locate the actual SDK directory inside sdk_parent.
-
-    RBFX prebuilt releases extract into a folder such as
-    ``rebelfork-sdk-linux-gcc-x64-dll-latest``.
-    We look for the first subdirectory that contains bin/CoreData.
-    """
+    """Locate the actual SDK directory — the first subdir containing bin/CoreData."""
     for candidate in sdk_parent.iterdir():
         if candidate.is_dir() and (candidate / "bin" / "CoreData").is_dir():
             return candidate
-    # Fallback
     for candidate in sdk_parent.iterdir():
         if candidate.is_dir():
             return candidate
     return sdk_parent
-
-
-def find_sdk_for_cmake(sdk_candidate: Path) -> str:
-    """Return a path suitable for -DCMAKE_PREFIX_PATH.
-
-    Searches the candidate and its immediate subdirectories for cmake
-    config files (SDKConfig.cmake) or a cmake/rbfx package directory.
-    """
-    # Check root
-    for path in [
-        sdk_candidate / "SDKConfig.cmake",
-        sdk_candidate / "cmake" / "SDKConfig.cmake",
-        sdk_candidate / "lib" / "cmake" / "rbfx",
-    ]:
-        if path.exists():
-            return str(sdk_candidate)
-
-    # Check subdirectories (typical for prebuilt SDKs)
-    for subdir in sdk_candidate.iterdir():
-        if subdir.is_dir():
-            for path in [
-                subdir / "SDKConfig.cmake",
-                subdir / "cmake" / "SDKConfig.cmake",
-                subdir / "lib" / "cmake" / "rbfx",
-            ]:
-                if path.exists():
-                    return str(subdir)
-            if (subdir / "include" / "rbfx").exists():
-                return str(subdir)
-
-    return str(sdk_candidate)
 
 
 # ---------------------------------------------------------------------------
@@ -100,11 +62,7 @@ def find_sdk_for_cmake(sdk_candidate: Path) -> str:
 # ---------------------------------------------------------------------------
 
 def interactive_sdk_prompt():
-    """Show interactive menu for SDK setup.
-
-    Returns:
-        (install_method, sdk_path_relative, sdk_url)
-    """
+    """Ask user for SDK setup mode and return (method, sdk_rel_path, url)."""
     print()
     print("=" * 60)
     print("  RBFX SDK Setup")
@@ -155,96 +113,42 @@ def interactive_sdk_prompt():
 
 
 # ---------------------------------------------------------------------------
-# Write SDK helper info file
-# ---------------------------------------------------------------------------
-
-def _make_info(desc: str, sdk_abs: str, cmake_prefix: str, source: str = None) -> str:
-    sep = "=" * 60
-    lines = [
-        "RBFX SDK Information",
-        sep,
-        "",
-        desc,
-        "",
-        "Runtime SDK (for CoreData in ResourceRoot.ini):",
-        "    " + sdk_abs,
-        "",
-        "CMake PREFIX_PATH (for -DCMAKE_PREFIX_PATH=):",
-        "    " + cmake_prefix,
-        "",
-    ]
-    if source:
-        lines.extend(["Downloaded from:", "    " + str(source), ""])
-    else:
-        lines.append("")
-    lines.append("See README.md for build instructions.")
-    return "\n".join(lines)
-
-
-def write_info(project_root: Path, sdk_abs: Path, cmake_prefix: str, desc: str, source: str = None):
-    info = project_root / "SDK_INFO.txt"
-    info.write_text(_make_info(desc, str(sdk_abs), cmake_prefix, source))
-
-
-# ---------------------------------------------------------------------------
-# Fix ResourceRoot.ini CoreData path
+# Fix ResourceRoot.ini --- Jinja2 renders the template variable but may not
+# point to the real extracted SDK location, so we patch it.
 # ---------------------------------------------------------------------------
 
 def fix_resource_root(project_root: Path, sdk_abs: Path):
-    """Rewrite CoreData= path in ResourceRoot.ini with actual SDK location."""
-    resource_path = project_root / "ResourceRoot.ini"
-    if not resource_path.is_file():
+    content_path = project_root / "ResourceRoot.ini"
+    if not content_path.is_file():
         return
 
-    content = resource_path.read_text(encoding="utf-8")
+    content = content_path.read_text(encoding="utf-8")
     content = re.sub(
         r"(CoreData\s*=\s*).+?(/bin/CoreData)",
         lambda m: m.group(1) + str(sdk_abs) + m.group(2),
-        content,
-        flags=re.MULTILINE
+        content, flags=re.MULTILINE
     )
-    resource_path.write_text(content, encoding="utf-8")
+    content_path.write_text(content, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
-# Main logic
+# Main
 # ---------------------------------------------------------------------------
 
-# Use the Jinja2-rendered variable names (cleaner for the rest of the code)
-sample_plugin = _sample_plugin
-rbfx_sdk_install = _rbfx_sdk_install
-rbfx_sdk_path = _rbfx_sdk_path
-rbfx_sdk_download_url = _rbfx_sdk_download_url
+project_root = Path.cwd()
 
-print()
-print("=" * 60)
-print("  Post-generation hook")
-print("=" * 60)
-print()
-
-# Decide install method
+# Decide install mode
 is_interactive = sys.stdin.isatty()
-install_method = None
-sdk_rel_path = None
-sdk_url = None
-
 if rbfx_sdk_install == "prompt" and is_interactive:
     install_method, sdk_rel_path, sdk_url = interactive_sdk_prompt()
 elif rbfx_sdk_install == "download":
-    install_method = "download"
-    sdk_rel_path = rbfx_sdk_path
-    sdk_url = rbfx_sdk_download_url
+    install_method, sdk_rel_path, sdk_url = "download", rbfx_sdk_path, rbfx_sdk_download_url
 elif rbfx_sdk_install == "existing":
-    install_method = "existing"
-    sdk_rel_path = rbfx_sdk_path
-    sdk_url = ""
+    install_method, sdk_rel_path, sdk_url = "existing", rbfx_sdk_path, ""
 else:
     print(f"  Warning: Unknown rbfx_sdk_install={rbfx_sdk_install!r}. Defaulting to interactive.")
     install_method, sdk_rel_path, sdk_url = interactive_sdk_prompt()
 
-# Resolve paths — cookiecutter runs hooks FROM the project directory,
-# so we use cwd() instead of __file__ to find the project root.
-project_root = Path.cwd()
 sdk_full_path = (project_root.parent / sdk_rel_path).resolve()
 
 # ---------------------------------------------------------------------------
@@ -259,12 +163,10 @@ if install_method == "download":
         sys.exit(1)
 
     print(f"  Downloading SDK to: {sdk_full_path} ...")
-
     sdk_full_path.parent.mkdir(parents=True, exist_ok=True)
 
     archive_path = sdk_full_path.parent / "sdk.7z"
     if not archive_path.exists():
-        import urllib.request
         print(f"  Downloading from: {sdk_url}")
         urllib.request.urlretrieve(sdk_url, archive_path)
     print(f"  Extracting...")
@@ -277,23 +179,17 @@ if install_method == "download":
     archive_path.unlink()
 
     actual_sdk = find_sdk_directory(sdk_dir)
+    if sdk_full_path.exists():
+        shutil.rmtree(sdk_full_path)
     sdk_dir.rename(sdk_full_path)
     actual_sdk = sdk_full_path
 
-    cmake_prefix = find_sdk_for_cmake(sdk_full_path)
-
-    write_info(project_root, actual_sdk, cmake_prefix,
-               "This project was generated with an auto-downloaded SDK.", source=sdk_url)
-
-    print()
     print(f"  SDK downloaded to: {actual_sdk}")
-    print(f"  Recommended -DCMAKE_PREFIX_PATH: {cmake_prefix}")
-    print()
 
-    # Fix ResourceRoot.ini
+    # Patch ResourceRoot.ini so CoreData points to the extracted SDK,
+    # not to the default cookiecutter path.
     fix_resource_root(project_root, actual_sdk)
     print(f"  Updated ResourceRoot.ini with real SDK path.")
-    print(f"  SDK info written to: SDK_INFO.txt")
 
 # ---------------------------------------------------------------------------
 # Use existing SDK
@@ -302,20 +198,15 @@ if install_method == "download":
 elif install_method == "existing":
     sdk_check = sdk_full_path
 
-    if sdk_check.is_dir() and (sdk_check / "bin" / "CoreData").is_dir():
-        cmake_prefix = find_sdk_for_cmake(sdk_check)
-        print(f"  Using existing SDK at:   {sdk_check}")
-        print(f"  Recommended -DCMAKE_PREFIX_PATH: {cmake_prefix}")
-        print()
-
-        write_info(project_root, sdk_check, cmake_prefix, "This project uses an existing SDK.")
-        print(f"  SDK info written to: SDK_INFO.txt")
-    else:
-        print(f"  Error: SDK directory not found at '{sdk_check}'")
-        print()
-        print("  Ensure the SDK directory contains bin/CoreData")
-        print("  Run with: --rbfx_sdk_install=existing --rbfx_sdk_path /path/to/sdk")
+    if not (sdk_check.is_dir() and (sdk_check / "bin" / "CoreData").is_dir()):
+        print(f"  Error: SDK directory not found: {sdk_check}")
+        print("  Ensure the SDK contains bin/CoreData")
+        print("  Or use: --rbfx_sdk_install=download")
         sys.exit(1)
+
+    fix_resource_root(project_root, sdk_check)
+    print(f"  Using existing SDK at: {sdk_check}")
+    print(f"  Updated ResourceRoot.ini.")
 
 # ---------------------------------------------------------------------------
 # Git submodule (sample_plugin)
