@@ -1,9 +1,11 @@
 {
     "project_name": "Sample Project",
     "project_slug": "sample-project",
-    "rbfx_sdk": "../rbfx",
     "sample_plugin": "y",
     "editor": "y",
     "min_cmake_version": "3.14",
-    "license": "MIT"
+    "license": "MIT",
+    "rbfx_sdk_install": "prompt",
+    "rbfx_sdk_path": "../rbfx",
+    "rbfx_sdk_download_url": "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
 }
