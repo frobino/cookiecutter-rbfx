@@ -6,5 +6,5 @@
     "min_cmake_version": "3.14",
     "license": "MIT",
     "rbfx_sdk_install": "y",
-    "rbfx_sdk_path": "../rbfx"
+    "rbfx_sdk_path": "rbfx"
 }

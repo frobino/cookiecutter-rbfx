@@ -54,7 +54,7 @@ You will be prompted for a few values:
   [2/6] project_slug (sample-project): # used for folders and targets
   [3/6] rbfx_sdk_install (y):          # y = download SDK, n = user provides SDK
 
-  [4/6] rbfx_sdk_path (../rbfx):       # SDK location
+  [4/6] rbfx_sdk_path (rbfx):          # SDK location (relative to parent directory)
 
   [5/6] sample_plugin (y): n          # If you want to include and build an example of a plugin
 
@@ -70,11 +70,13 @@ When you run the template, you will specify whether to download the RBFX engine 
 **rbfx_sdk_install = y** (recommended)
 - The template automatically detects your operating system and downloads the matching prebuilt SDK from GitHub.
 - Supported platforms: Linux, Windows, and macOS
-- The SDK will be saved to the path specified in `rbfx_sdk_path` (default: `../rbfx`).
+- The SDK will be saved in a sibling directory to your project with the name specified in `rbfx_sdk_path` (default: `rbfx`).
+- The project will reference the SDK using a relative path.
 
 **rbfx_sdk_install = n** (advanced)
-- You must have already downloaded and extracted the SDK to the path specified in `rbfx_sdk_path`.
+- You must have already downloaded and extracted the SDK to a sibling directory with the name specified in `rbfx_sdk_path`.
 - The hook verifies the SDK exists and contains `bin/CoreData`.
+- The project will reference the SDK using a relative path.
 
 ### CLI Usage (non-interactive)
 
@@ -90,7 +92,7 @@ cookiecutter . --no-input \
 # Use existing SDK
 cookiecutter . --no-input \
     rbfx_sdk_install=n \
-    rbfx_sdk_path="/absolute/path/to/sdk" \
+    rbfx_sdk_path="my-custom-sdk" \
     project_name="MyProject" \
     project_slug="my-project"
 ```

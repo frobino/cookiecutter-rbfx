@@ -81,10 +81,18 @@ def fix_resource_root(project_root: Path, sdk_abs: Path):
     if not content_path.is_file():
         return
 
+    # Calculate the relative path from project directory to SDK directory
+    try:
+        rel_path = os.path.relpath(sdk_abs, project_root)
+    except ValueError:
+        # This can happen on Windows with different drives
+        # Fall back to absolute path
+        rel_path = str(sdk_abs)
+    
     content = content_path.read_text(encoding="utf-8")
     content = re.sub(
-        r"(CoreData\s*=\s*).+?(/bin/CoreData)",
-        lambda m: m.group(1) + str(sdk_abs) + m.group(2),
+        r"(CoreData\s*=\s*)\.\./.+(/bin/CoreData)",
+        lambda m: m.group(1) + rel_path + m.group(2),
         content, flags=re.MULTILINE
     )
     content_path.write_text(content, encoding="utf-8")
