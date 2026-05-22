@@ -11,7 +11,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -20,23 +23,43 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y p7zip-full cmake ninja-build libx11-dev libdbus-1-dev uuid-dev libgl1-mesa-dev
           pip install cookiecutter
 
-      - name: Generate project
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pip install cookiecutter
+          choco install 7zip
+
+      - name: Generate project (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           cookiecutter . --no-input \
             rbfx_sdk_install=y \
             project_name="PR Test" \
             project_slug="pr_test"
 
-      - name: Configure and build
+      - name: Generate project (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cookiecutter . --no-input rbfx_sdk_install=y project_name="PR Test" project_slug="pr_test" editor=n
+
+      - name: Configure and build (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           cmake -S pr_test -B pr_test/build \
             -G Ninja \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_PREFIX_PATH=../rbfx
           cmake --build pr_test/build
+
+      - name: Configure and build (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cmake -S pr_test -B pr_test/build -G "Visual Studio 17 2022" -A x64 -DBUILD_SHARED_LIBS=ON "-DCMAKE_PREFIX_PATH=../rbfx"
+          cmake --build pr_test/build --config RelWithDebInfo
