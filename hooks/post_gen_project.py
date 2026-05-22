@@ -21,7 +21,6 @@ from pathlib import Path
 sample_plugin = "{{ cookiecutter.sample_plugin }}"
 rbfx_sdk_install = "{{ cookiecutter.rbfx_sdk_install }}"
 rbfx_sdk_path = "{{ cookiecutter.rbfx_sdk_path }}"
-rbfx_sdk_download_url = "{{ cookiecutter.rbfx_sdk_download_url }}"
 
 
 _SUBMODULE_REPO = "https://github.com/rbfx/Core.SamplePlugin.git"
@@ -34,6 +33,21 @@ _SUBMODULE_PATH = "Plugins/Core.SamplePlugin"
 
 def run(cmd: str, **kwargs):
     return subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True, **kwargs)
+
+
+def get_sdk_download_url():
+    """Return the appropriate SDK download URL for the current platform."""
+    plat = sys.platform.lower()
+    if plat.startswith("linux"):
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
+    elif plat == "win32":
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-windows-x64-dll-latest.7z"
+    elif plat == "darwin":
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-macos-x64-dll-latest.7z"
+    else:
+        # Fallback to Linux SDK for unknown platforms
+        print(f"  Warning: unknown platform {plat}, using Linux SDK.")
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
 
 
 def extract_archive(archive_path: Path, dest: Path):
@@ -55,61 +69,6 @@ def find_sdk_directory(sdk_parent: Path) -> Path:
         if candidate.is_dir():
             return candidate
     return sdk_parent
-
-
-# ---------------------------------------------------------------------------
-# Interactive prompt
-# ---------------------------------------------------------------------------
-
-def interactive_sdk_prompt():
-    """Ask user for SDK setup mode and return (method, sdk_rel_path, url)."""
-    print()
-    print("=" * 60)
-    print("  RBFX SDK Setup")
-    print("=" * 60)
-    print()
-    print("  Choose how to set up the RBFX engine SDK:")
-    print()
-    print("  [1] Download prebuilt SDK  (recommended)")
-    print("  [2] Use existing SDK       (provide path)")
-    print()
-
-    try:
-        choice = input("  > ").strip()
-    except EOFError:
-        print("  Error: no stdin (running non-interactively?).")
-        print("  Use: --rbfx_sdk_install=download or --rbfx_sdk_install=existing")
-        sys.exit(1)
-
-    if choice in ("1", ""):
-        path = input("  SDK location [../rbfx]: ").strip() or "../rbfx"
-        print()
-        print("  Download source:")
-        print()
-        print("  [1] GitHub releases (auto-detected for your platform)")
-        print("  [2] Custom URL")
-        print()
-        source = input("  > ").strip() or "1"
-        if source == "1":
-            plat = sys.platform.lower()
-            if plat.startswith("linux"):
-                url = "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
-            elif plat == "win32":
-                url = "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-windows-x64-dll-latest.7z"
-            elif plat == "darwin":
-                url = "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-macos-x64-dll-latest.7z"
-            else:
-                url = "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
-                print(f"  Warning: unknown platform {plat}, using Linux SDK.")
-        else:
-            url = input("  Custom URL: ").strip()
-        return ("download", path, url)
-    else:
-        path = input("  SDK path: ").strip()
-        if not path:
-            print("  Error: SDK path is required.")
-            sys.exit(1)
-        return ("existing", path, "")
 
 
 # ---------------------------------------------------------------------------
@@ -137,17 +96,17 @@ def fix_resource_root(project_root: Path, sdk_abs: Path):
 
 project_root = Path.cwd()
 
-# Decide install mode
-is_interactive = sys.stdin.isatty()
-if rbfx_sdk_install == "prompt" and is_interactive:
-    install_method, sdk_rel_path, sdk_url = interactive_sdk_prompt()
-elif rbfx_sdk_install == "download":
-    install_method, sdk_rel_path, sdk_url = "download", rbfx_sdk_path, rbfx_sdk_download_url
-elif rbfx_sdk_install == "existing":
-    install_method, sdk_rel_path, sdk_url = "existing", rbfx_sdk_path, ""
+# Decide install mode - simplified to yes/no
+if rbfx_sdk_install == "y":
+    install_method, sdk_rel_path = "download", rbfx_sdk_path
+    sdk_url = get_sdk_download_url()
+elif rbfx_sdk_install == "n":
+    install_method, sdk_rel_path = "existing", rbfx_sdk_path
+    sdk_url = ""
 else:
-    print(f"  Warning: Unknown rbfx_sdk_install={rbfx_sdk_install!r}. Defaulting to interactive.")
-    install_method, sdk_rel_path, sdk_url = interactive_sdk_prompt()
+    print(f"  Warning: Unknown rbfx_sdk_install={rbfx_sdk_install!r}. Expected 'y' or 'n'. Defaulting to download.")
+    install_method, sdk_rel_path = "download", rbfx_sdk_path
+    sdk_url = get_sdk_download_url()
 
 sdk_full_path = (project_root.parent / sdk_rel_path).resolve()
 
@@ -158,8 +117,7 @@ sdk_full_path = (project_root.parent / sdk_rel_path).resolve()
 if install_method == "download":
     if not sdk_url:
         print("  Error: No download URL provided.")
-        print("    Interactive: provide a URL at the prompt.")
-        print("    CI/Automated: set rbfx_sdk_download_url or --rbfx_sdk_download_url")
+        print("  This is unexpected - the OS detection should have provided a URL.")
         sys.exit(1)
 
     print(f"  Downloading SDK to: {sdk_full_path} ...")
@@ -201,7 +159,7 @@ elif install_method == "existing":
     if not (sdk_check.is_dir() and (sdk_check / "bin" / "CoreData").is_dir()):
         print(f"  Error: SDK directory not found: {sdk_check}")
         print("  Ensure the SDK contains bin/CoreData")
-        print("  Or use: --rbfx_sdk_install=download")
+        print("  Or use: --rbfx_sdk_install=y")
         sys.exit(1)
 
     fix_resource_root(project_root, sdk_check)

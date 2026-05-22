@@ -50,30 +50,30 @@ cookiecutter https://github.com/frobino/cookiecutter-rbfx.git
 You will be prompted for a few values:
 
 ```bash
-  [1/7] project_name (Sample Project): 
-  [2/7] project_slug (sample-project): # used for folders and targets
-  [3/7] rbfx_sdk_install (existing):   # ↓ 1. download  2. existing
-  [4/7] rbfx_sdk_path (../rbfx):       # SDK save location
-  [5/7] rbfx_sdk_download_url ():      # auto-detected per-platform (download mode)
-  [6/7] sample_plugin (y): n          # If you want to include and build an example of a plugin
-  [7/7] editor (y): n                 # If you want to include and build a custom Editor target
+  [1/6] project_name (Sample Project): 
+  [2/6] project_slug (sample-project): # used for folders and targets
+  [3/6] rbfx_sdk_install (y):          # y = download SDK, n = user provides SDK
+
+  [4/6] rbfx_sdk_path (../rbfx):       # SDK location
+
+  [5/6] sample_plugin (y): n          # If you want to include and build an example of a plugin
+
+  [6/6] editor (y): n                 # If you want to include and build a custom Editor target
 ```
 
 For a complete description of the prompts, see below.
 
-### SDK Setup Flow
+### SDK Setup
 
-When you run the template, you will first choose how to obtain the RBFX engine SDK:
+When you run the template, you will specify whether to download the RBFX engine SDK:
 
-**[1] Download prebuilt SDK** (recommended)
-- The template downloads the matching prebuilt SDK for your platform.
-- After answering the SDK install prompt, you will be asked to confirm the SDK save location (default: `../rbfx` sibling to your project).
-- Then you can choose to download from GitHub releases (default, auto-detected for Linux/Windows/macOS) or provide a custom URL.
-- The downloaded SDK is extracted and placed in the chosen location.
+**rbfx_sdk_install = y** (recommended)
+- The template automatically detects your operating system and downloads the matching prebuilt SDK from GitHub.
+- Supported platforms: Linux, Windows, and macOS
+- The SDK will be saved to the path specified in `rbfx_sdk_path` (default: `../rbfx`).
 
-**[2] Existing SDK** (advanced)
-- Use this if you have already built or downloaded an SDK.
-- You will be asked for the absolute or relative path to the SDK directory.
+**rbfx_sdk_install = n** (advanced)
+- You must have already downloaded and extracted the SDK to the path specified in `rbfx_sdk_path`.
 - The hook verifies the SDK exists and contains `bin/CoreData`.
 
 ### CLI Usage (non-interactive)
@@ -81,16 +81,15 @@ When you run the template, you will first choose how to obtain the RBFX engine S
 For CI or automated generation, use `--no-input` and set the cookiecutter variables from the command line:
 
 ```bash
-# Download SDK from GitHub releases
+# Download SDK from GitHub releases (URL auto-detected by OS)
 cookiecutter . --no-input \
-    rbfx_sdk_install=download \
-    rbfx_sdk_download_url="https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z" \
+    rbfx_sdk_install=y \
     project_name="MyProject" \
     project_slug="my-project"
 
 # Use existing SDK
 cookiecutter . --no-input \
-    rbfx_sdk_install=existing \
+    rbfx_sdk_install=n \
     rbfx_sdk_path="/absolute/path/to/sdk" \
     project_name="MyProject" \
     project_slug="my-project"

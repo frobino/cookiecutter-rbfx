@@ -29,8 +29,7 @@ jobs:
       - name: Generate project
         run: |
           cookiecutter . --no-input \
-            rbfx_sdk_install=download \
-            rbfx_sdk_download_url="https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z" \
+            rbfx_sdk_install=y \
             project_name="PR Test" \
             project_slug="pr_test"
 
