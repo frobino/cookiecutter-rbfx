@@ -148,13 +148,15 @@ if install_method == "download":
     if sdk_full_path.exists():
         shutil.rmtree(sdk_full_path)
     sdk_dir.rename(sdk_full_path)
-    actual_sdk = sdk_full_path
+    # Calculate the final path of the actual SDK directory after the move
+    # The actual SDK was at sdk_dir/subdir_name, after move it's at sdk_full_path/subdir_name
+    actual_sdk_final_path = sdk_full_path / actual_sdk.name
 
-    print(f"  SDK downloaded to: {actual_sdk}")
+    print(f"  SDK downloaded to: {actual_sdk_final_path}")
 
     # Patch ResourceRoot.ini so CoreData points to the extracted SDK,
     # not to the default cookiecutter path.
-    fix_resource_root(project_root, actual_sdk)
+    fix_resource_root(project_root, actual_sdk_final_path)
     print(f"  Updated ResourceRoot.ini with real SDK path.")
 
 # ---------------------------------------------------------------------------
