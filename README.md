@@ -50,12 +50,14 @@ cookiecutter https://github.com/frobino/cookiecutter-rbfx.git
 You will be prompted for a few values:
 
 ```bash
-  [1/6] project_name (Sample Project): 
-  [2/6] project_slug (sample-project): # project folder location (relative to parent directory)
-  [3/6] rbfx_sdk_install (y):          # y = download SDK, n = user provides SDK
-  [4/6] rbfx_sdk_path (rbfx):          # SDK location (relative to parent directory)
-  [5/6] sample_plugin (y): n           # If you want to include and build an example of a plugin
-  [6/6] editor (y): n                  # If you want to include and build a custom Editor target
+  [1/8] project_name (Sample Project): 
+  [2/8] project_slug (sample-project): # project folder location (relative to parent directory)
+  [3/8] sample_plugin (y):             # If you want to include and build an example of a plugin
+  [4/8] editor (y):                    # If you want to include and build a custom Editor target
+  [5/8] min_cmake_version (3.14):      # If you need specific CMake version
+  [6/8] license (MIT):                 # License for your new project
+  [7/8] rbfx_sdk_install (y):          # y = download SDK, n = do not download SDK
+  [8/8] rbfx_sdk_path (rbfx):          # SDK location (relative to parent directory)
 ```
 
 For a complete description of the prompts, see below.
@@ -66,7 +68,7 @@ When you run the template, you will specify whether to download the RBFX engine 
 
 **rbfx_sdk_install = y** (recommended)
 - The template automatically detects your operating system and downloads the matching prebuilt SDK from GitHub.
-- Supported platforms: Linux, Windows, and macOS
+- Supported platforms: Linux, Windows, and macOS.
 - The SDK contents will be extracted directly to the directory specified in `rbfx_sdk_path` (default: `rbfx`).
 - The project will reference the SDK using a relative path.
 
