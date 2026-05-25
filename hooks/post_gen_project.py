@@ -41,7 +41,8 @@ def get_sdk_download_url():
     if plat.startswith("linux"):
         return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
     elif plat == "win32":
-        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-windows-x64-dll-latest.7z"
+        # We only support x64 Windows
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-windows-msvc-x64-dll-latest.7z"
     elif plat == "darwin":
         return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-macos-x64-dll-latest.7z"
     else:
