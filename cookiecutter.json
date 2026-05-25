@@ -1,9 +1,10 @@
 {
     "project_name": "Sample Project",
     "project_slug": "sample-project",
-    "rbfx_sdk": "../rbfx",
     "sample_plugin": "y",
     "editor": "y",
     "min_cmake_version": "3.14",
-    "license": "MIT"
+    "license": "MIT",
+    "rbfx_sdk_install": "y",
+    "rbfx_sdk_path": "rbfx"
 }

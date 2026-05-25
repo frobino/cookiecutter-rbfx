@@ -18,7 +18,7 @@ Use this template if you want to:
 - Start a new **RBFX game or application**
 - Avoid manually setting up CMake, folders, and boilerplate files
 - Follow a consistent and repeatable project structure
-- Get from “empty directory” to “compiling project” quickly
+- Get from "empty directory" to "compiling project" quickly
 
 ## Prerequisites
 
@@ -26,9 +26,12 @@ Before using this template, make sure you have:
 
 - **Python 3.7+**
 - **Cookiecutter**
-- **RBFX engine** (built or downloaded locally)
 - **CMake** (3.16 or newer recommended)
 - A C++ compiler compatible with C++17
+- **7z/7za** (for downloading prebuilt SDKs — see below)
+  - Linux: `sudo apt-get install p7zip-full`
+  - macOS: `brew install p7zip`
+  - Windows: Install 7-Zip from https://www.7-zip.org/
 
 Install Cookiecutter if needed:
 
@@ -47,13 +50,50 @@ cookiecutter https://github.com/frobino/cookiecutter-rbfx.git
 You will be prompted for a few values:
 
 ```bash
-  [1/6] project_name (Sample Project): 
-  [2/6] project_slug (sample-project): # used for folders and targets
-  [3/6] rbfx_sdk (../rbfx): ../rebelfork-sdk-linux-gcc-x64-dll-latest # relative path to the rbfx engine
-  [4/6] sample_plugin (y): n # If you want to include and build an example of a plugin
-  [5/7] editor (y): n # If you want to include and build an Editor with your game and plugins
-  [6/7] min_cmake_version (3.14): 
-  [7/7] license (MIT): 
+  [1/8] project_name (Sample Project): 
+  [2/8] project_slug (sample-project): # project folder location (relative to parent directory)
+  [3/8] sample_plugin (y):             # If you want to include and build an example of a plugin
+  [4/8] editor (y):                    # If you want to include and build a custom Editor target
+  [5/8] min_cmake_version (3.14):      # If you need specific CMake version
+  [6/8] license (MIT):                 # License for your new project
+  [7/8] rbfx_sdk_install (y):          # y = download SDK, n = do not download SDK
+  [8/8] rbfx_sdk_path (rbfx):          # SDK location (relative to parent directory)
+```
+
+For a complete description of the prompts, see below.
+
+### SDK Setup
+
+When you run the template, you will specify whether to download the RBFX engine SDK:
+
+**rbfx_sdk_install = y** (recommended)
+- The template automatically detects your operating system and downloads the matching prebuilt SDK from GitHub.
+- Supported platforms: Linux, Windows, and macOS.
+- The SDK contents will be extracted directly to the directory specified in `rbfx_sdk_path` (default: `rbfx`).
+- The project will reference the SDK using a relative path.
+
+**rbfx_sdk_install = n** (advanced)
+- You must have already downloaded and extracted the SDK to the directory specified in `rbfx_sdk_path`.
+- The directory must contain the `bin/CoreData` folder.
+- The project will reference the SDK using a relative path.
+
+### CLI Usage (non-interactive)
+
+For CI or automated generation, use `--no-input` and set the cookiecutter variables from the command line:
+
+```bash
+# Download SDK from GitHub releases (URL auto-detected by OS)
+cookiecutter . --no-input \
+    rbfx_sdk_install=y \
+    project_name="MyProject" \
+    project_slug="my-project"
+
+# Use existing SDK
+cookiecutter . --no-input \
+    rbfx_sdk_install=n \
+    rbfx_sdk_path="my-custom-sdk" \
+    project_name="MyProject" \
+    project_slug="my-project"
 ```
 
 After answering the prompts, a new directory containing your project will be created.
@@ -67,21 +107,21 @@ your_project/
 ├── android
 ├── CMakeLists.txt
 ├── Plugins # [OPTIONAL]
-│   └── Core.SamplePlugin
-│       ├── ...
+│   └── Core.SamplePlugin
+│       ├── ...
 ├── Project
-│   ├── Data
-│   │   ├── ...
-│   └── Project.json
+│   ├── Data
+│   │   ├── ...
+│   └── Project.json
 ├── ResourceRoot.ini
 └── Source
     ├── Application
-    │   ├── CMakeLists.txt
-    │   ├── SampleProject.cpp
-    │   └── SampleProject.h
+    │   ├── CMakeLists.txt
+    │   ├── SampleProject.cpp
+    │   └── SampleProject.h
     ├── Editor # [OPTIONAL]
-    │   ├── CMakeLists.txt
-    │   └── Editor.cpp
+    │   ├── CMakeLists.txt
+    │   └── Editor.cpp
     └── Launcher
         ├── CMakeLists.txt
         └── Launcher.cpp
@@ -100,7 +140,7 @@ cmake .. -DCMAKE_PREFIX_PATH=/path/to/rbfx
 cmake --build .
 ```
 
-Replace ```/path/to/rbfx``` with the location of your RBFX installation or build.
+Replace `/path/to/rbfx` with the location of your RBFX SDK (the same path you specified when generating the project).
 
 ## Running the Application
 
