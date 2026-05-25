@@ -51,14 +51,11 @@ You will be prompted for a few values:
 
 ```bash
   [1/6] project_name (Sample Project): 
-  [2/6] project_slug (sample-project): # used for folders and targets
+  [2/6] project_slug (sample-project): # project folder location (relative to parent directory)
   [3/6] rbfx_sdk_install (y):          # y = download SDK, n = user provides SDK
-
   [4/6] rbfx_sdk_path (rbfx):          # SDK location (relative to parent directory)
-
-  [5/6] sample_plugin (y): n          # If you want to include and build an example of a plugin
-
-  [6/6] editor (y): n                 # If you want to include and build a custom Editor target
+  [5/6] sample_plugin (y): n           # If you want to include and build an example of a plugin
+  [6/6] editor (y): n                  # If you want to include and build a custom Editor target
 ```
 
 For a complete description of the prompts, see below.
