@@ -1,0 +1,231 @@
+//
+// Copyright (c) 2008-2022 the Urho3D project.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
+#include <Urho3D/Core/CoreEvents.h>
+#include <Urho3D/Engine/Engine.h>
+#include <Urho3D/Graphics/AnimatedModel.h>
+#include <Urho3D/Graphics/AnimationController.h>
+#include <Urho3D/Graphics/Camera.h>
+#include <Urho3D/Graphics/Graphics.h>
+#include <Urho3D/Graphics/Material.h>
+#include <Urho3D/Graphics/Octree.h>
+#include <Urho3D/Graphics/Renderer.h>
+#include <Urho3D/Graphics/RibbonTrail.h>
+#include <Urho3D/Input/Input.h>
+#include <Urho3D/Resource/ResourceCache.h>
+#include <Urho3D/Scene/Scene.h>
+#include <Urho3D/UI/Font.h>
+#include <Urho3D/UI/Text.h>
+#include <Urho3D/UI/UI.h>
+#include <Urho3D/UI/Text3D.h>
+#include <Urho3D/Input/FreeFlyController.h>
+
+#include "RibbonTrailDemo.h"
+
+#include <Urho3D/DebugNew.h>
+
+
+RibbonTrailDemo::RibbonTrailDemo(Context* context)
+    : Sample(context)
+    , swordTrailStartTime_(0.2f)
+    , swordTrailEndTime_(0.46f)
+    , timeStepSum_(0.0f)
+{
+}
+
+void RibbonTrailDemo::Start()
+{
+    // Execute base class startup
+    Sample::Start();
+
+    // Create the scene content
+    CreateScene();
+
+    // Create the UI content
+    CreateInstructions();
+
+    // Setup the viewport for displaying the scene
+    SetupViewport();
+
+    // Set the mouse mode to use in the sample
+    SetMouseMode(MM_RELATIVE);
+    SetMouseVisible(false);
+}
+
+void RibbonTrailDemo::CreateScene()
+{
+    auto* cache = GetSubsystem<ResourceCache>();
+
+    scene_ = new Scene(context_);
+
+    // Create octree, use default volume (-1000, -1000, -1000) to (1000, 1000, 1000)
+    scene_->CreateComponent<Octree>();
+
+    // Create scene node & StaticModel component for showing a static plane
+    Node* planeNode = scene_->CreateChild("Plane");
+    planeNode->SetScale(Vector3(100.0f, 1.0f, 100.0f));
+    auto* planeObject = planeNode->CreateComponent<StaticModel>();
+    planeObject->SetModel(cache->GetResource<Model>("Models/Plane.mdl"));
+    planeObject->SetMaterial(cache->GetResource<Material>("Materials/StoneTiled.xml"));
+
+    // Create a directional light to the world.
+    Node* lightNode = scene_->CreateChild("DirectionalLight");
+    lightNode->SetDirection(Vector3(0.6f, -1.0f, 0.8f)); // The direction vector does not need to be normalized
+    auto* light = lightNode->CreateComponent<Light>();
+    light->SetLightType(LIGHT_DIRECTIONAL);
+    light->SetCastShadows(true);
+    light->SetShadowBias(BiasParameters(0.00005f, 0.5f));
+    // Set cascade splits at 10, 50 and 200 world units, fade shadows out at 80% of maximum shadow distance
+    light->SetShadowCascade(CascadeParameters(10.0f, 50.0f, 200.0f, 0.0f, 0.8f));
+
+    // Create first box for face camera trail demo with 1 column.
+    Node* boxContainer = scene_->CreateChild("BoxContainer");
+    boxNode1_ = boxContainer->CreateChild("Box1");
+    auto* box1 = boxNode1_->CreateComponent<StaticModel>();
+    box1->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
+    box1->SetCastShadows(true);
+    auto* boxTrail1 = boxNode1_->CreateComponent<RibbonTrail>();
+    boxTrail1->SetMaterial(cache->GetResource<Material>("Materials/RibbonTrail.xml"));
+    boxTrail1->SetStartColor(Color(1.0f, 0.5f, 0.0f, 1.0f));
+    boxTrail1->SetEndColor(Color(1.0f, 1.0f, 0.0f, 0.0f));
+    boxTrail1->SetWidth(0.5f);
+    boxTrail1->SetUpdateInvisible(true);
+
+    // Create second box for face camera trail demo with 4 column.
+    // This will produce less distortion than first trail.
+    boxNode2_ = boxContainer->CreateChild("Box2");
+    auto* box2 = boxNode2_->CreateComponent<StaticModel>();
+    box2->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
+    box2->SetCastShadows(true);
+    auto* boxTrail2 = boxNode2_->CreateComponent<RibbonTrail>();
+    boxTrail2->SetMaterial(cache->GetResource<Material>("Materials/RibbonTrail.xml"));
+    boxTrail2->SetStartColor(Color(1.0f, 0.5f, 0.0f, 1.0f));
+    boxTrail2->SetEndColor(Color(1.0f, 1.0f, 0.0f, 0.0f));
+    boxTrail2->SetWidth(0.5f);
+    boxTrail2->SetTailColumn(4);
+    boxTrail2->SetUpdateInvisible(true);
+
+    // Load ninja animated model for bone trail demo.
+    Node* ninjaNode = scene_->CreateChild("Ninja");
+    ninjaNode->SetPosition(Vector3(5.0f, 0.0f, 0.0f));
+    ninjaNode->SetRotation(Quaternion(0.0f, 180.0f, 0.0f));
+    auto* ninja = ninjaNode->CreateComponent<AnimatedModel>();
+    ninja->SetModel(cache->GetResource<Model>("Models/Ninja.mdl"));
+    ninja->SetMaterial(cache->GetResource<Material>("Materials/Ninja.xml"));
+    ninja->SetCastShadows(true);
+
+    // Create animation controller and play attack animation.
+    ninjaAnimCtrl_ = ninjaNode->CreateComponent<AnimationController>();
+    ninjaAnimCtrl_->PlayNewExclusive(AnimationParameters{context_, "Models/Ninja_Attack3.ani"}.Looped());
+
+    // Add ribbon trail to tip of sword.
+    Node* swordTip = ninjaNode->GetChild("Joint29", true);
+    swordTrail_ = swordTip->CreateComponent<RibbonTrail>();
+
+    // Set sword trail type to bone and set other parameters.
+    swordTrail_->SetTrailType(TT_BONE);
+    swordTrail_->SetMaterial(cache->GetResource<Material>("Materials/SlashTrail.xml"));
+    swordTrail_->SetLifetime(0.22f);
+    swordTrail_->SetStartColor(Color(1.0f, 1.0f, 1.0f, 0.75f));
+    swordTrail_->SetEndColor(Color(0.2f, 0.5f, 1.0f, 0.0f));
+    swordTrail_->SetTailColumn(4);
+    swordTrail_->SetUpdateInvisible(true);
+
+    // Add floating text for info.
+    Node* boxTextNode1 = scene_->CreateChild("BoxText1");
+    boxTextNode1->SetPosition(Vector3(-1.0f, 2.0f, 0.0f));
+    auto* boxText1 = boxTextNode1->CreateComponent<Text3D>();
+    boxText1->SetText(ea::string("Face Camera Trail (4 Column)"));
+    boxText1->SetFont(cache->GetResource<Font>("Fonts/BlueHighway.sdf"), 24);
+
+    Node* boxTextNode2 = scene_->CreateChild("BoxText2");
+    boxTextNode2->SetPosition(Vector3(-6.0f, 2.0f, 0.0f));
+    auto* boxText2 = boxTextNode2->CreateComponent<Text3D>();
+    boxText2->SetText(ea::string("Face Camera Trail (1 Column)"));
+    boxText2->SetFont(cache->GetResource<Font>("Fonts/BlueHighway.sdf"), 24);
+
+    Node* ninjaTextNode2 = scene_->CreateChild("NinjaText");
+    ninjaTextNode2->SetPosition(Vector3(4.0f, 2.5f, 0.0f));
+    auto* ninjaText = ninjaTextNode2->CreateComponent<Text3D>();
+    ninjaText->SetText(ea::string("Bone Trail (4 Column)"));
+    ninjaText->SetFont(cache->GetResource<Font>("Fonts/BlueHighway.sdf"), 24);
+
+    // Create the camera.
+    cameraNode_ = scene_->CreateChild("Camera");
+    cameraNode_->CreateComponent<FreeFlyController>();
+    cameraNode_->CreateComponent<Camera>();
+
+    // Set an initial position for the camera scene node above the plane
+    cameraNode_->SetPosition(Vector3(0.0f, 2.0f, -14.0f));
+}
+
+void RibbonTrailDemo::CreateInstructions()
+{
+    auto* cache = GetSubsystem<ResourceCache>();
+    auto* ui = GetSubsystem<UI>();
+
+    // Construct new Text object, set string to display and font to use
+    auto* instructionText = GetUIRoot()->CreateChild<Text>();
+    instructionText->SetText("Use WASD keys and mouse/touch to move");
+    instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+
+    // Position the text relative to the screen center
+    instructionText->SetHorizontalAlignment(HA_CENTER);
+    instructionText->SetVerticalAlignment(VA_CENTER);
+    instructionText->SetPosition(0, GetUIRoot()->GetHeight() / 4);
+}
+
+void RibbonTrailDemo::SetupViewport()
+{
+    auto* renderer = GetSubsystem<Renderer>();
+
+    // Set up a viewport to the Renderer subsystem so that the 3D scene can be seen. We need to define the scene and the camera
+    // at minimum. Additionally we could configure the viewport screen size and the rendering path (eg. forward / deferred) to
+    // use, but now we just use full screen and default render path configured in the engine command line options
+    SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<Camera>()));
+    SetViewport(0, viewport);
+}
+
+void RibbonTrailDemo::Update(float timeStep)
+{
+
+
+    // Sum of timesteps.
+    timeStepSum_ += timeStep;
+
+    // Move first box with pattern.
+    boxNode1_->SetTransform(Vector3(-4.0f + 3.0f * Cos(100.0f * timeStepSum_), 0.5f, -2.0f * Cos(400.0f * timeStepSum_)),
+        Quaternion());
+
+    // Move second box with pattern.
+    boxNode2_->SetTransform(Vector3(0.0f + 3.0f * Cos(100.0f * timeStepSum_), 0.5f, -2.0f * Cos(400.0f * timeStepSum_)),
+        Quaternion());
+
+    // Get elapsed attack animation time.
+    float swordAnimTime = ninjaAnimCtrl_->GetTime("Models/Ninja_Attack3.ani");
+
+    // Stop emitting trail when sword is finished slashing.
+    if (!swordTrail_->IsEmitting() && swordAnimTime > swordTrailStartTime_ && swordAnimTime < swordTrailEndTime_)
+        swordTrail_->SetEmitting(true);
+    else if (swordTrail_->IsEmitting() && swordAnimTime >= swordTrailEndTime_)
+        swordTrail_->SetEmitting(false);
+}
