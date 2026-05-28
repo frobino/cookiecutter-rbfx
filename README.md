@@ -51,31 +51,36 @@ You will be prompted for a few values:
 
 ```bash
   [1/8] project_name (Sample Project): 
-  [2/8] project_slug (sample-project): # project folder location (relative to parent directory)
+  [2/8] project_slug (sample-project): # project identifier (used for folder name and CMake project name)
   [3/8] sample_plugin (y):             # If you want to include and build an example of a plugin
   [4/8] editor (y):                    # If you want to include and build a custom Editor target
   [5/8] min_cmake_version (3.14):      # If you need specific CMake version
   [6/8] license (MIT):                 # License for your new project
   [7/8] rbfx_sdk_install (y):          # y = download SDK, n = do not download SDK
-  [8/8] rbfx_sdk_path (rbfx):          # SDK location (relative to parent directory)
+  [8/8] rbfx_sdk_path (rbfx):          # SDK location (relative to directory where cookiecutter is executed)
 ```
 
 For a complete description of the prompts, see below.
 
-### SDK Setup
+### Prompt Descriptions
 
-When you run the template, you will specify whether to download the RBFX engine SDK:
+Each prompt in the cookiecutter template serves a specific purpose:
 
-**rbfx_sdk_install = y** (recommended)
-- The template automatically detects your operating system and downloads the matching prebuilt SDK from GitHub.
-- Supported platforms: Linux, Windows, and macOS.
-- The SDK contents will be extracted directly to the directory specified in `rbfx_sdk_path` (default: `rbfx`).
-- The project will reference the SDK using a relative path.
+**project_name**: Human-readable name for your project (e.g., "My Awesome Game")
 
-**rbfx_sdk_install = n** (advanced)
-- You must have already downloaded and extracted the SDK to the directory specified in `rbfx_sdk_path`.
-- The directory must contain the `bin/CoreData` folder.
-- The project will reference the SDK using a relative path.
+**project_slug**: Simple identifier used for both the folder name and CMake project name. Use values like `my-game` or `awesome-project`, not paths. Invalid examples: `C:\Folder\Name`, `/home/user/Name`.
+
+**sample_plugin**: Whether to include and build an example plugin (`y` or `n`)
+
+**editor**: Whether to include and build a custom Editor target (`y` or `n`)
+
+**min_cmake_version**: Minimum CMake version required (default: "3.14")
+
+**license**: License for your new project (default: "MIT")
+
+**rbfx_sdk_install**: Whether to download the SDK (`y`) or use an existing one (`n`)
+
+**rbfx_sdk_path**: Location of the SDK relative to the directory where you are running cookiecutter. This location must contain `bin/CoreData`. If you are letting this template download the SDK (previous prompt), this will be the folder where the SDK will be downloaded. Use values such as `rbfx-SDK` or `../this/folder`, not absolute paths. Invalid examples: `C:\Folder\Name`, `/home/user/Name`
 
 ### CLI Usage (non-interactive)
 
@@ -103,7 +108,7 @@ After answering the prompts, a new directory containing your project will be cre
 A typical generated project looks like this:
 
 ```bash
-your_project/
+<project_slug>/
 ├── android
 ├── CMakeLists.txt
 ├── Plugins # [OPTIONAL]
@@ -140,7 +145,9 @@ cmake .. -DCMAKE_PREFIX_PATH=/path/to/rbfx
 cmake --build .
 ```
 
-Replace `/path/to/rbfx` with the location of your RBFX SDK (the same path you specified when generating the project).
+Replace `/path/to/rbfx` with the location of your RBFX SDK (the same path you specified when generating the project), that must contain `bin/CoreData`.
+
+Note that the exact command can be different depening on the version of the SDK (dll, lib, etc.).
 
 ## Running the Application
 
