@@ -39,6 +39,20 @@ Install Cookiecutter if needed:
 pip install cookiecutter
 ```
 
+## Creating the Samples project
+
+NOTE: tested on Linux (debian) and Win64 only
+
+```bash
+cd /tmp
+cookiecutter https://github.com/frobino/cookiecutter-rbfx.git --checkout samples
+# When prompted, select the default. It will auto download the sdk and configure the Samples project
+cd sample-project
+cmake -DCMAKE_CONFIGURATION_TYPES="Debug" -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH=../rbfx -S . -B ./build && cmake --build build/
+# Run the Samples
+./build/bin/Samples
+```
+
 ## Creating a New Project
 
 Generate a new RBFX project by running:

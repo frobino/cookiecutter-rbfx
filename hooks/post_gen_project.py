@@ -176,6 +176,19 @@ elif install_method == "existing":
     print(f"  Using existing SDK at: {sdk_check}")
     print(f"  Updated ResourceRoot.ini.")
 
+# Copy Data folder from SDK to Project directory
+sdk_data_path = sdk_full_path / "bin" / "Data"
+project_data_path = project_root / "Project" / "Data"
+
+if sdk_data_path.is_dir():
+    print(f"  Copying Data folder from SDK to Project...")
+    if project_data_path.exists():
+        shutil.rmtree(project_data_path)
+    shutil.copytree(sdk_data_path, project_data_path)
+    print(f"  Copied Data folder to: {project_data_path}")
+else:
+    print(f"  Warning: SDK Data folder not found at {sdk_data_path}")
+
 # ---------------------------------------------------------------------------
 # Git submodule (sample_plugin)
 # ---------------------------------------------------------------------------
