@@ -35,19 +35,17 @@ def run(cmd: str, **kwargs):
     return subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True, **kwargs)
 
 
-def get_sdk_download_url():
+def get_sdk_download_url(buildType: str):
     """Return the appropriate SDK download URL for the current platform."""
     plat = sys.platform.lower()
     if plat.startswith("linux"):
-        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-" + buildType + "-latest.7z"
     elif plat == "win32":
         # We only support x64 Windows
-        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-windows-msvc-x64-dll-latest.7z"
-    elif plat == "darwin":
-        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-macos-x64-dll-latest.7z"
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-windows-msvc-x64-" + buildType + "-latest.7z"
     else:
         # Fallback to Linux SDK for unknown platforms
-        print(f"  Warning: unknown platform {plat}, using Linux SDK.")
+        print(f"  Warning: unknown platform {plat}, using Linux SDK built with dll.")
         return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-dll-latest.7z"
 
 
@@ -105,17 +103,13 @@ def fix_resource_root(project_root: Path, sdk_abs: Path):
 
 project_root = Path.cwd()
 
-# Decide install mode - simplified to yes/no
-if rbfx_sdk_install == "y":
-    install_method, sdk_rel_path = "download", rbfx_sdk_path
-    sdk_url = get_sdk_download_url()
-elif rbfx_sdk_install == "n":
+# Decide install mode
+if rbfx_sdk_install == "n":
     install_method, sdk_rel_path = "existing", rbfx_sdk_path
     sdk_url = ""
 else:
-    print(f"  Warning: Unknown rbfx_sdk_install={rbfx_sdk_install!r}. Expected 'y' or 'n'. Defaulting to download.")
     install_method, sdk_rel_path = "download", rbfx_sdk_path
-    sdk_url = get_sdk_download_url()
+    sdk_url = get_sdk_download_url(rbfx_sdk_install)
 
 sdk_full_path = (project_root.parent / sdk_rel_path).resolve()
 

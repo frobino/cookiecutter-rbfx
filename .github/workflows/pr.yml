@@ -40,14 +40,14 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           cookiecutter . --no-input \
-            rbfx_sdk_install=y \
+            rbfx_sdk_install="dll" \
             project_name="PR Test" \
             project_slug="pr_test"
 
       - name: Generate project (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          cookiecutter . --no-input rbfx_sdk_install=y project_name="PR Test" project_slug="pr_test" editor=n
+          cookiecutter . --no-input rbfx_sdk_install="dll" project_name="PR Test" project_slug="pr_test" editor=n
 
       - name: Configure and build (Ubuntu)
         if: matrix.os == 'ubuntu-latest'

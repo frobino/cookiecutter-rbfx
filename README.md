@@ -56,7 +56,7 @@ You will be prompted for a few values:
   [4/8] editor (y):                    # If you want to include and build a custom Editor target
   [5/8] min_cmake_version (3.14):      # If you need specific CMake version
   [6/8] license (MIT):                 # License for your new project
-  [7/8] rbfx_sdk_install (y):          # y = download SDK, n = do not download SDK
+  [7/8] rbfx_sdk_install (dll):        # dll/lib = download SDK, n = do not download SDK
   [8/8] rbfx_sdk_path (rbfx):          # SDK location (relative to directory where cookiecutter is executed)
 ```
 
@@ -78,7 +78,7 @@ Each prompt in the cookiecutter template serves a specific purpose:
 
 **license**: License for your new project (default: "MIT")
 
-**rbfx_sdk_install**: Whether to download the SDK (`y`) or use an existing one (`n`)
+**rbfx_sdk_install**: Whether to download the SDK (`dll` or `lib`) or use an existing one (`n`). The `dll` option downloads a DLL-based SDK, while `lib` downloads a LIB-based SDK.
 
 **rbfx_sdk_path**: Location of the SDK relative to the directory where you are running cookiecutter. This location must contain `bin/CoreData`. If you are letting this template download the SDK (previous prompt), this will be the folder where the SDK will be downloaded. Use values such as `rbfx-SDK` or `../this/folder`, not absolute paths. Invalid examples: `C:\Folder\Name`, `/home/user/Name`
 
@@ -87,9 +87,15 @@ Each prompt in the cookiecutter template serves a specific purpose:
 For CI or automated generation, use `--no-input` and set the cookiecutter variables from the command line:
 
 ```bash
-# Download SDK from GitHub releases (URL auto-detected by OS)
+# Download DLL-based SDK from GitHub releases (URL auto-detected by OS)
 cookiecutter . --no-input \
-    rbfx_sdk_install=y \
+    rbfx_sdk_install="dll" \
+    project_name="MyProject" \
+    project_slug="my-project"
+
+# Download LIB-based SDK from GitHub releases
+cookiecutter . --no-input \
+    rbfx_sdk_install="lib" \
     project_name="MyProject" \
     project_slug="my-project"
 
@@ -136,18 +142,21 @@ This layout follows common RBFX and CMake conventions and is ready to build.
 
 ## Building the Project
 
-From inside your generated project directory:
+From inside your generated project directory, the build commands differ depending on whether you chose a DLL-based or LIB-based SDK during project generation.
+
+For DLL-based SDKs (`rbfx_sdk_install="dll"`):
 
 ```bash
-mkdir build
-cd build
-cmake .. -DCMAKE_PREFIX_PATH=/path/to/rbfx
-cmake --build .
+cmake -DCMAKE_CONFIGURATION_TYPES="Debug" -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH=../rbfx -S . -B ./build && cmake --build build/
 ```
 
-Replace `/path/to/rbfx` with the location of your RBFX SDK (the same path you specified when generating the project), that must contain `bin/CoreData`.
+For LIB-based SDKs (`rbfx_sdk_install="lib"`):
 
-Note that the exact command can be different depening on the version of the SDK (dll, lib, etc.).
+```bash
+cmake -DCMAKE_CONFIGURATION_TYPES="Debug" -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH=../rbfx -S . -B ./build && cmake --build build/
+```
+
+Replace `../rbfx` with the location of your RBFX SDK (the same path you specified when generating the project), that must contain `bin/CoreData`.
 
 ## Running the Application
 
