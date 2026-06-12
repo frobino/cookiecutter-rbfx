@@ -51,13 +51,23 @@ You will be prompted for a few values:
 
 ```bash
   [1/8] project_name (Sample Project): 
-  [2/8] project_slug (sample-project): # project identifier (used for folder name and CMake project name)
-  [3/8] sample_plugin (y):             # If you want to include and build an example of a plugin
-  [4/8] editor (y):                    # If you want to include and build a custom Editor target
-  [5/8] min_cmake_version (3.14):      # If you need specific CMake version
-  [6/8] license (MIT):                 # License for your new project
-  [7/8] rbfx_sdk_install (dll):        # dll/lib = download SDK, n = do not download SDK
-  [8/8] rbfx_sdk_path (rbfx):          # SDK location (relative to directory where cookiecutter is executed)
+  [2/8] project_slug (sample-project): 
+  [3/8] Select sample_plugin
+    1 - y
+    2 - n
+    Choose from [1/2] (1): 
+  [4/8] Select editor
+    1 - y
+    2 - n
+    Choose from [1/2] (1): 
+  [5/8] min_cmake_version (3.14): 
+  [6/8] license (MIT): 
+  [7/8] Select rbfx_sdk_install
+    1 - dll
+    2 - lib
+    3 - n
+    Choose from [1/2/3] (1): 
+  [8/8] rbfx_sdk_path (rbfx): 
 ```
 
 For a complete description of the prompts, see below.
@@ -70,15 +80,15 @@ Each prompt in the cookiecutter template serves a specific purpose:
 
 **project_slug**: Simple identifier used for both the folder name and CMake project name. Use values like `my-game` or `awesome-project`, not paths. Invalid examples: `C:\Folder\Name`, `/home/user/Name`.
 
-**sample_plugin**: Whether to include and build an example plugin (`y` or `n`)
+**sample_plugin**: Whether to include and build an example plugin (choose `1` for `y`, `2` for `n`)
 
-**editor**: Whether to include and build a custom Editor target (`y` or `n`)
+**editor**: Whether to include and build a custom Editor target (choose `1` for `y`, `2` for `n`)
 
 **min_cmake_version**: Minimum CMake version required (default: "3.14")
 
 **license**: License for your new project (default: "MIT")
 
-**rbfx_sdk_install**: Whether to download the SDK (`dll` or `lib`) or use an existing one (`n`). The `dll` option downloads a DLL-based SDK, while `lib` downloads a LIB-based SDK.
+**rbfx_sdk_install**: Whether to download the SDK — choose `1` for `dll` (DLL-based SDK), `2` for `lib` (LIB-based SDK), or `3` for `n` (use an existing SDK).
 
 **rbfx_sdk_path**: Location of the SDK relative to the directory where you are running cookiecutter. This location must contain `bin/CoreData`. If you are letting this template download the SDK (previous prompt), this will be the folder where the SDK will be downloaded. Use values such as `rbfx-SDK` or `../this/folder`, not absolute paths. Invalid examples: `C:\Folder\Name`, `/home/user/Name`
 
