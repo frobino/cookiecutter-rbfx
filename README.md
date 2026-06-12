@@ -9,7 +9,7 @@ Quickly scaffold a new RBFX game project using Cookiecutter.
 This repository provides a Cookiecutter template that generates a ready-to-build **RBFX (C++) game project** with a clean structure.
 It is intended for developers who want to start coding immediately without spending time on initial project setup.
 
-> NOTE: tested on Windows and Linux only (no Android or web yet)
+> NOTE: tested on Windows and Linux only (no Android yet)
 
 ## What This Is For
 
@@ -30,8 +30,10 @@ Before using this template, make sure you have:
 - A C++ compiler compatible with C++17
 - **7z/7za** (for downloading prebuilt SDKs — see below)
   - Linux: `sudo apt-get install p7zip-full`
-  - macOS: `brew install p7zip`
   - Windows: Install 7-Zip from https://www.7-zip.org/
+- For web build (wasm) you will need:
+  - [emscripten](https://emscripten.org/docs/getting_started/downloads.html) installed and configured
+  - lz4, e.g. ```apt install python3-lz4```
 
 Install Cookiecutter if needed:
 
@@ -65,8 +67,9 @@ You will be prompted for a few values:
   [7/8] Select rbfx_sdk_install
     1 - dll
     2 - lib
-    3 - n
-    Choose from [1/2/3] (1): 
+    3 - web
+    4 - n
+    Choose from [1/2/3/4] (1): 
   [8/8] rbfx_sdk_path (rbfx): 
 ```
 
@@ -88,7 +91,7 @@ Each prompt in the cookiecutter template serves a specific purpose:
 
 **license**: License for your new project (default: "MIT")
 
-**rbfx_sdk_install**: Whether to download the SDK — choose `1` for `dll` (DLL-based SDK), `2` for `lib` (LIB-based SDK), or `3` for `n` (use an existing SDK).
+**rbfx_sdk_install**: Whether to download the SDK — choose `1` for `dll` (DLL-based SDK), `2` for `lib` (LIB-based SDK), `3` for `web` (WebAssembly/Emscripten SDK), or `4` for `n` (use an existing SDK).
 
 **rbfx_sdk_path**: Location of the SDK relative to the directory where you are running cookiecutter. This location must contain `bin/CoreData`. If you are letting this template download the SDK (previous prompt), this will be the folder where the SDK will be downloaded. Use values such as `rbfx-SDK` or `../this/folder`, not absolute paths. Invalid examples: `C:\Folder\Name`, `/home/user/Name`
 
@@ -106,6 +109,12 @@ cookiecutter . --no-input \
 # Download LIB-based SDK from GitHub releases
 cookiecutter . --no-input \
     rbfx_sdk_install="lib" \
+    project_name="MyProject" \
+    project_slug="my-project"
+
+# Download WebAssembly SDK from GitHub releases
+cookiecutter . --no-input \
+    rbfx_sdk_install="web" \
     project_name="MyProject" \
     project_slug="my-project"
 
@@ -164,6 +173,12 @@ For LIB-based SDKs (`rbfx_sdk_install="lib"`):
 
 ```bash
 cmake -DCMAKE_CONFIGURATION_TYPES="Debug" -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH=../rbfx -S . -B ./build && cmake --build build/
+```
+
+For web-based SDKs (`rbfx_sdk_install="web"`):
+
+```bash
+cmake -DWEB=1 -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_PREFIX_PATH=../rbfx -DCMAKE_FIND_ROOT_PATH=../rbfx -DPACKAGE_TOOL_EXECUTABLE="/usr/bin/python3;$(pwd)/PackageTool.py" -S . -B ./build
 ```
 
 Replace `../rbfx` with the location of your RBFX SDK (the same path you specified when generating the project), that must contain `bin/CoreData`.
