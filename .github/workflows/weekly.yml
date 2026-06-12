@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-2022]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -27,7 +27,7 @@ jobs:
           pip install cookiecutter
 
       - name: Install dependencies (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
           pip install cookiecutter
           choco install 7zip
@@ -41,7 +41,7 @@ jobs:
             project_slug="weekly_test"
 
       - name: Generate project (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
           cookiecutter . --no-input rbfx_sdk_install="dll" project_name="Weekly Test" project_slug="weekly_test" editor=n
 
@@ -55,7 +55,7 @@ jobs:
           cmake --build weekly_test/build
 
       - name: Configure and build (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
-          cmake -S weekly_test -B weekly_test/build -G "Visual Studio 17 2022" -A x64 -DBUILD_SHARED_LIBS=ON "-DCMAKE_PREFIX_PATH=../rbfx"
+          cmake -S weekly_test -B weekly_test/build -DBUILD_SHARED_LIBS=ON "-DCMAKE_PREFIX_PATH=../rbfx"
           cmake --build weekly_test/build --config RelWithDebInfo
