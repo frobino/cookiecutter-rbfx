@@ -178,7 +178,9 @@ cmake -DCMAKE_CONFIGURATION_TYPES="Debug" -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX
 For web-based SDKs (`rbfx_sdk_install="web"`):
 
 ```bash
-cmake -DWEB=1 -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_PREFIX_PATH=../rbfx -DCMAKE_FIND_ROOT_PATH=../rbfx -DPACKAGE_TOOL_EXECUTABLE="/usr/bin/python3;$(pwd)/PackageTool.py" -S . -B ./build
+# NOTE: the wget command below (and the PACKAGE_TOOL_EXECUTABLE) could be removed if the web sdk contains PackageTool (as the other SDKs) 
+wget -O PackageTool.py https://raw.githubusercontent.com/rbfx/rbfx/master/Source/Tools/PackageTool/PackageTool.py
+cmake -DWEB=1 -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_PREFIX_PATH=../rbfx -DCMAKE_FIND_ROOT_PATH=../rbfx -DPACKAGE_TOOL_EXECUTABLE="/usr/bin/python3;$(pwd)/PackageTool.py" -S . -B ./build && cmake --build build/
 ```
 
 Replace `../rbfx` with the location of your RBFX SDK (the same path you specified when generating the project), that must contain `bin/CoreData`.
@@ -188,7 +190,17 @@ Replace `../rbfx` with the location of your RBFX SDK (the same path you specifie
 Once built, run the executable produced in the build directory:
 
 ```bash
+cd build/bin
 ./your_project
 ```
 
 On Windows, run the generated .exe file instead.
+
+For web builds:
+
+```bash
+cd build/bin
+python3 -m http.server 8080
+```
+
+Then open your browser at ```http://0.0.0.0:8080/``` and click on the html file with the **project_slug** name, e.g. ```sample-project.html```.
