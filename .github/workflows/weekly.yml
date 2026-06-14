@@ -59,3 +59,49 @@ jobs:
         run: |
           cmake -S weekly_test -B weekly_test/build -DBUILD_SHARED_LIBS=ON "-DCMAKE_PREFIX_PATH=../rbfx"
           cmake --build weekly_test/build --config RelWithDebInfo
+
+  build-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full cmake ninja-build libx11-dev libdbus-1-dev uuid-dev libgl1-mesa-dev python3-lz4
+          pip install cookiecutter
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+          actions-cache-folder: emsdk-cache
+
+      - name: Generate project (Web)
+        run: |
+          cookiecutter . --no-input \
+            rbfx_sdk_install="web" \
+            project_name="Weekly Web Test" \
+            project_slug="weekly_web_test" \
+            editor=n
+
+      - name: Download PackageTool.py
+        working-directory: weekly_web_test
+        run: |
+          wget -O PackageTool.py https://raw.githubusercontent.com/rbfx/rbfx/master/Source/Tools/PackageTool/PackageTool.py
+
+      - name: Configure and build (Web)
+        working-directory: weekly_web_test
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DWEB=1 \
+            -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+            -DCMAKE_PREFIX_PATH=../rbfx \
+            -DCMAKE_FIND_ROOT_PATH=../rbfx \
+            -DPACKAGE_TOOL_EXECUTABLE="/usr/bin/python3;$(pwd)/PackageTool.py"
+          cmake --build build
