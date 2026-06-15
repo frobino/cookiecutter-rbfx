@@ -93,11 +93,6 @@ jobs:
             project_slug="pr_web_test" \
             editor=n
 
-      - name: Download PackageTool.py
-        working-directory: pr_web_test
-        run: |
-          wget -O PackageTool.py https://raw.githubusercontent.com/rbfx/rbfx/master/Source/Tools/PackageTool/PackageTool.py
-
       - name: Configure and build (Web)
         working-directory: pr_web_test
         run: |
@@ -106,6 +101,5 @@ jobs:
             -DWEB=1 \
             -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
             -DCMAKE_PREFIX_PATH=../rbfx \
-            -DCMAKE_FIND_ROOT_PATH=../rbfx \
-            -DPACKAGE_TOOL_EXECUTABLE="/usr/bin/python3;$(pwd)/PackageTool.py"
+            -DCMAKE_FIND_ROOT_PATH=../rbfx
           cmake --build build
