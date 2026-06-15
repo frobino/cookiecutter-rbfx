@@ -37,6 +37,8 @@ def run(cmd: str, **kwargs):
 
 def get_sdk_download_url(buildType: str):
     """Return the appropriate SDK download URL for the current platform."""
+    if buildType == "web":
+        return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-web-emscripten-wasm-lib-latest.7z"
     plat = sys.platform.lower()
     if plat.startswith("linux"):
         return "https://github.com/rbfx/rbfx/releases/download/latest/rebelfork-sdk-linux-gcc-x64-" + buildType + "-latest.7z"
