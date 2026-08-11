@@ -10,7 +10,7 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Configure engine options. This is required in-source engine builds.
-set(URHO3D_SAMPLES OFF)
+set(URHO3D_SAMPLES ON)
 
 # Engine must be available on CMAKE_PREFIX_PATH:
 # Option 1 - prebuilt SDK:
@@ -39,7 +39,7 @@ add_subdirectory (${CMAKE_SOURCE_DIR}/Plugins/Core.SamplePlugin)
 {% endif %}
 
 # List all plugins used by the application.
-set (APP_PLUGIN_NAME "App.Main")
+set (APP_PLUGIN_NAME "Samples")
 {% if cookiecutter.sample_plugin == 'y' -%}
 set (APP_PLUGIN_LIST "Plugin.Core.SamplePlugin;${APP_PLUGIN_NAME}")
 {% else -%}
