@@ -5,9 +5,9 @@
 using namespace Urho3D;
 
 /// Main class that hosts the application.
-class SampleProject : public MainPluginApplication
+class SampleProject : public ExecutablePlugin
 {
-    URHO3D_OBJECT(SampleProject, MainPluginApplication);
+    URHO3D_OBJECT(SampleProject, ExecutablePlugin);
 
 public:
     explicit SampleProject(Context* context);
