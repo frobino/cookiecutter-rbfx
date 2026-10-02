@@ -2,12 +2,12 @@
 
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/Input/InputEvents.h>
-#include <Urho3D/Plugins/PluginApplication.h>
+#include <Urho3D/Plugins/Plugin.h>
 
-URHO3D_DEFINE_PLUGIN_MAIN(SampleProject);
+URHO3D_EXPORT_PLUGIN(SampleProject);
 
 SampleProject::SampleProject(Context* context)
-    : MainPluginApplication(context)
+    : ExecutablePlugin(context)
 {
 }
 
